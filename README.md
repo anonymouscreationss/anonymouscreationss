@@ -8,7 +8,7 @@
 </p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/skynetfc/skynetfc/main/assets/banner.png" alt="SKY NET Banner" width="100%" />
+  <img src="https://ibb.co/mYLs6kq" alt="SKY NET Banner" width="100%" />
 </p>
 
 <p align="center">
